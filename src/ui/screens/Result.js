@@ -121,11 +121,11 @@ export function initResult({ onPlayAgain, onMenu }) {
   menuButton.addEventListener('click', () => onMenu());
 
   return {
-    setResult({ won, score, moves, rawScore, multiplier, scoreAfterMultiplier, timeBonus }) {
+    setResult({ won, reason, score, moves, rawScore, multiplier, scoreAfterMultiplier, timeBonus }) {
       resultGeneration += 1;
       const generation = resultGeneration;
 
-      title.textContent = won ? 'You Win!' : "Time's Up!";
+      title.textContent = won ? 'You Win!' : reason === 'timeout' ? "Time's Up!" : 'Game Over';
       movesEl.textContent = moves;
 
       const hasMoveBonus = won && typeof multiplier === 'number' && multiplier > 1 && rawScore != null;

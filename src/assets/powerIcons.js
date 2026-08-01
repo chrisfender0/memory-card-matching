@@ -155,3 +155,52 @@ const COLD_AS_ICE_HUE = 195; // ice-blue
 export function generateColdAsIceIcon() {
   return generateIcon('cold-as-ice', COLD_AS_ICE_HUE, drawSnowflakeGlyph);
 }
+
+function drawSkullGlyph(ctx, cx, cy, r) {
+  // Cranium
+  ctx.beginPath();
+  ctx.arc(cx, cy - r * 0.1, r * 0.82, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Jaw
+  ctx.beginPath();
+  ctx.roundRect(cx - r * 0.42, cy + r * 0.35, r * 0.84, r * 0.42, r * 0.12);
+  ctx.fill();
+  ctx.stroke();
+
+  // Eye sockets, nasal cavity and jaw teeth are carved out in a dark
+  // overlay on top of the cranium/jaw shapes drawn above.
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+
+  const eyeOffset = r * 0.32;
+  const eyeY = cy - r * 0.12;
+  const eyeRadius = r * 0.2;
+  [-1, 1].forEach((side) => {
+    ctx.beginPath();
+    ctx.arc(cx + side * eyeOffset, eyeY, eyeRadius, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + r * 0.08);
+  ctx.lineTo(cx - r * 0.13, cy + r * 0.28);
+  ctx.lineTo(cx + r * 0.13, cy + r * 0.28);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.75)';
+  ctx.lineWidth = r * 0.06;
+  for (let i = -1; i <= 1; i++) {
+    ctx.beginPath();
+    ctx.moveTo(cx + i * r * 0.2, cy + r * 0.4);
+    ctx.lineTo(cx + i * r * 0.2, cy + r * 0.62);
+    ctx.stroke();
+  }
+}
+
+const TOUCH_OF_DEATH_HUE = 355; // dark red
+
+export function generateTouchOfDeathIcon() {
+  return generateIcon('touch-of-death', TOUCH_OF_DEATH_HUE, drawSkullGlyph);
+}

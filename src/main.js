@@ -121,6 +121,7 @@ function startGame(playerName, level, powersEnabled = false, selectedPowerId = n
   controller.on('timeAdjust', ({ delta }) => hud.showTimeAdjust(delta));
   controller.on('win', (payload) => handleGameEnd(payload));
   controller.on('timeout', (payload) => handleGameEnd(payload));
+  controller.on('loss', (payload) => handleGameEnd(payload));
 
   hud.reset(controller.timer.durationSeconds);
   showScreen(null);
