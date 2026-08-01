@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Asset Gallery — Memory Card Matching</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #111118;
+        font-family: -apple-system, system-ui, sans-serif;
+        color: #eee;
+      }
+      h1 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 4px;
+      }
+      p.sub {
+        margin: 0 0 24px;
+        color: #888;
+        font-size: 13px;
+      }
+      section {
+        margin-bottom: 32px;
+      }
+      h2 {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #999;
+        margin: 0 0 12px;
+      }
+      #faces {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 12px;
+        max-width: 760px;
+      }
+      .tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+      .tile img {
+        width: 100%;
+        aspect-ratio: 1;
+        border-radius: 8px;
+        display: block;
+      }
+      .tile .label {
+        font-size: 10px;
+        color: #999;
+        text-align: center;
+        line-height: 1.3;
+        white-space: pre-line;
+      }
+      #back img {
+        width: 96px;
+        height: 96px;
+        border-radius: 8px;
+        display: block;
+      }
+      #timing {
+        font-size: 12px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Card Art Asset Gallery</h1>
+    <p class="sub">All procedurally generated textures from <code>src/assets/cardArt.js</code>.</p>
+
+    <section>
+      <h2>32 Card Faces</h2>
+      <div id="faces"></div>
+    </section>
+
+    <section>
+      <h2>Card Back (shared)</h2>
+      <div id="back"></div>
+    </section>
+
+    <p id="timing"></p>
+
+    <script type="module" src="/src/debug/assetsGallery.js"></script>
+  </body>
+</html>

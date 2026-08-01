@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Memory Card Matching</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="app"></canvas>
+
+    <div id="landing-screen" class="screen">
+      <div class="screen-content">
+        <h1 class="logo">Memory Card Matching</h1>
+
+        <section class="leaderboard">
+          <h2>Leaderboard</h2>
+          <ol id="leaderboard-list" class="leaderboard-list"></ol>
+          <p id="leaderboard-empty" class="empty-state" hidden>No scores yet — be the first!</p>
+        </section>
+
+        <button id="landing-play" class="btn btn-primary">Play</button>
+
+        <button id="reset-data" class="btn-link">Reset Data</button>
+      </div>
+
+      <div id="reset-confirm" class="modal-overlay" hidden>
+        <div class="modal">
+          <p>This will erase your leaderboard and saved name. Reset?</p>
+          <div class="modal-actions">
+            <button id="reset-cancel" class="btn btn-secondary">Cancel</button>
+            <button id="reset-confirm-btn" class="btn btn-danger">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="setup-screen" class="screen" hidden>
+      <div class="screen-content">
+        <h2>Get Ready</h2>
+
+        <label class="field">
+          <span>Your name</span>
+          <input
+            id="name-input"
+            type="text"
+            maxlength="20"
+            placeholder="Enter your name"
+            autocomplete="off"
+          />
+        </label>
+
+        <div class="difficulty-select">
+          <button class="difficulty-tile" data-level="easy">
+            <span class="difficulty-name">Easy</span>
+            <span class="difficulty-grid">4×4</span>
+          </button>
+          <button class="difficulty-tile" data-level="medium">
+            <span class="difficulty-name">Medium</span>
+            <span class="difficulty-grid">6×6</span>
+          </button>
+          <button class="difficulty-tile" data-level="hard">
+            <span class="difficulty-name">Hard</span>
+            <span class="difficulty-grid">8×8</span>
+          </button>
+        </div>
+
+        <button id="setup-play" class="btn btn-primary" disabled>Play</button>
+      </div>
+    </div>
+
+    <div id="hud" class="hud" hidden>
+      <div class="hud-stat">
+        <span class="hud-label">Moves</span>
+        <span id="hud-moves">0</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">Time</span>
+        <span id="hud-timer">2:00</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">Score</span>
+        <span id="hud-score">0</span>
+      </div>
+      <button id="hud-menu" class="hud-menu-btn">Menu</button>
+    </div>
+
+    <div id="result-screen" class="screen" hidden>
+      <div class="screen-content">
+        <h1 id="result-title" class="logo">You Win!</h1>
+
+        <div class="result-stats">
+          <div class="result-stat">
+            <span class="result-label">Score</span>
+            <span id="result-score">0</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-label">Moves</span>
+            <span id="result-moves">0</span>
+          </div>
+        </div>
+
+        <button id="result-play-again" class="btn btn-primary">Play Again</button>
+        <button id="result-menu" class="btn btn-secondary">Menu</button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
