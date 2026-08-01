@@ -24,6 +24,7 @@ export class GameController extends Emitter {
     // Starts on the first real flip rather than at construction, so idle
     // time spent studying a freshly-dealt board doesn't burn the clock.
     this._timerStarted = false;
+    this._startedAt = null;
 
     // Shared power-tracking state — updated unconditionally regardless of
     // whether a power is active, so a power has accurate history from turn 1.
@@ -67,6 +68,7 @@ export class GameController extends Emitter {
 
     if (!this._timerStarted) {
       this._timerStarted = true;
+      this._startedAt = performance.now();
       this.timer.start();
     }
 
@@ -141,7 +143,26 @@ export class GameController extends Emitter {
       if (isFinalPair) {
         this.timer.pause();
         playWin();
-        this.emit('win', { won: true, moves: this.moves, score: this.score });
+        // Move-threshold bonus, then a flat time-remaining bonus (1 pt per
+        // second left on the clock) — both are a final, one-time pass at
+        // game end, only on an actual win, never on a timeout/forced loss.
+        const { multiplier, finalScore: scoreAfterMultiplier } = this.scoreController.applyMoveThresholdBonus(
+          gameSession.level,
+          this.moves
+        );
+        const timeBonus = this.timer.getSecondsRemaining();
+        const finalScore = scoreAfterMultiplier + timeBonus;
+        this.emit('win', {
+          won: true,
+          moves: this.moves,
+          score: finalScore,
+          rawScore: this.scoreController.rawScore,
+          multiplier,
+          scoreAfterMultiplier,
+          timeBonus,
+          durationSeconds: this._elapsedSeconds(),
+          highestMatchPoints: this.scoreController.highestMatchPoints,
+        });
       }
     };
 
@@ -169,10 +190,24 @@ export class GameController extends Emitter {
   _handleTimeout() {
     if (this.isWon()) return; // last match landed on the same tick as timeout
     this.locked = true;
-    this.emit('timeout', { won: false, moves: this.moves, score: this.score });
+    this.emit('timeout', {
+      won: false,
+      moves: this.moves,
+      score: this.score,
+      durationSeconds: this._elapsedSeconds(),
+      highestMatchPoints: this.scoreController.highestMatchPoints,
+    });
   }
 
   isWon() {
     return this.matchedPairs === this.totalPairs;
+  }
+
+  // Real wall-clock time spent playing — used for the leaderboard's
+  // durationSeconds rather than deriving it from the countdown, since
+  // time-altering powers can add/subtract seconds from the clock.
+  _elapsedSeconds() {
+    if (this._startedAt == null) return 0;
+    return Math.round((performance.now() - this._startedAt) / 1000);
   }
 }
