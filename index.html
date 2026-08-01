@@ -68,6 +68,18 @@
           </button>
         </div>
 
+        <div class="field toggle-field">
+          <span>Special Powers</span>
+          <label class="toggle">
+            <input type="checkbox" id="powers-toggle" />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </div>
+
+        <div id="power-selector-slot" class="power-selector-slot" hidden>
+          <p class="power-selector-placeholder">Select a power — coming soon</p>
+        </div>
+
         <button id="setup-play" class="btn btn-primary" disabled>Play</button>
       </div>
     </div>
@@ -85,6 +97,7 @@
         <span class="hud-label">Score</span>
         <span id="hud-score">0</span>
       </div>
+      <div id="hud-power" class="hud-power" hidden></div>
       <button id="hud-menu" class="hud-menu-btn">Menu</button>
     </div>
 

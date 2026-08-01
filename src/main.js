@@ -106,8 +106,8 @@ function handleGameEnd(payload) {
   showScreen('result');
 }
 
-function startGame(playerName, level) {
-  configureSession(playerName, level);
+function startGame(playerName, level, powersEnabled = false, selectedPowerId = null) {
+  configureSession(playerName, level, powersEnabled, selectedPowerId);
 
   if (board) {
     scene.remove(board.group);
@@ -140,12 +140,14 @@ registerScreen(
 registerScreen(
   'setup',
   initSetup({
-    onPlay: ({ name, level }) => startGame(name, level),
+    onPlay: ({ name, level, powersEnabled, selectedPowerId }) =>
+      startGame(name, level, powersEnabled, selectedPowerId),
   })
 );
 
 const resultScreen = initResult({
-  onPlayAgain: () => startGame(gameSession.playerName, gameSession.level),
+  onPlayAgain: () =>
+    startGame(gameSession.playerName, gameSession.level, gameSession.powersEnabled, gameSession.selectedPowerId),
   onMenu: () => showScreen('landing'),
 });
 registerScreen('result', resultScreen);

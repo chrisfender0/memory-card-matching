@@ -1,6 +1,9 @@
 import { Emitter } from '../utils/Emitter.js';
 import { Timer } from './Timer.js';
 import { ScoreController } from './ScoreController.js';
+import { gameSession } from './GameSession.js';
+import { getPower } from './powers/registry.js';
+import { NoOpPower } from './powers/NoOpPower.js';
 
 const MISMATCH_DELAY = 800; // ms
 const GAME_DURATION_SECONDS = 120;
@@ -21,12 +24,31 @@ export class GameController extends Emitter {
     // time spent studying a freshly-dealt board doesn't burn the clock.
     this._timerStarted = false;
 
+    // Shared power-tracking state — updated unconditionally regardless of
+    // whether a power is active, so a power has accurate history from turn 1.
+    this.mismatchStreak = 0;
+    this.cardMismatchCounts = new Map();
+
+    this.activePower = gameSession.powersEnabled ? getPower(gameSession.selectedPowerId) : new NoOpPower();
+    this.activePower.onGameStart(this._powerContext());
+
     this.timer.on('tick', (secondsRemaining) => this.emit('tick', { secondsRemaining }));
     this.timer.on('timeout', () => this._handleTimeout());
   }
 
   get score() {
     return this.scoreController.score;
+  }
+
+  _powerContext() {
+    return {
+      controller: this,
+      timer: this.timer,
+      scoreController: this.scoreController,
+      board: this.board,
+      mismatchStreak: this.mismatchStreak,
+      cardMismatchCounts: this.cardMismatchCounts,
+    };
   }
 
   selectCard(card) {
@@ -41,6 +63,10 @@ export class GameController extends Emitter {
 
     card.flip();
     this.selected.push(card);
+
+    if (this.selected.length === 1) {
+      this.activePower.onFlipFirstCard(card, this._powerContext());
+    }
 
     if (this.selected.length < 2) return;
 
@@ -57,6 +83,9 @@ export class GameController extends Emitter {
   }
 
   _resolveMatch(a, b) {
+    this.mismatchStreak = 0;
+    this.activePower.onMatch(a, b, this._powerContext());
+
     this.matchedPairs += 1;
     this.selected = [];
     // locked stays true through the shake+explode animation — unlocked in
@@ -87,6 +116,8 @@ export class GameController extends Emitter {
       if (pending > 0) return;
 
       this.locked = false;
+      this.activePower.onTurnResolved(this._powerContext());
+
       if (isFinalPair) {
         this.timer.pause();
         this.emit('win', { won: true, moves: this.moves, score: this.score });
@@ -98,12 +129,19 @@ export class GameController extends Emitter {
   }
 
   _resolveMismatch(a, b) {
+    this.mismatchStreak += 1;
+    this.cardMismatchCounts.set(a, (this.cardMismatchCounts.get(a) || 0) + 1);
+    this.cardMismatchCounts.set(b, (this.cardMismatchCounts.get(b) || 0) + 1);
+    this.activePower.onMismatch(a, b, this._powerContext());
+
     a.flip();
     b.flip();
     this.selected = [];
     this.locked = false;
     this.scoreController.recordMismatch();
     this.emit('mismatch', { a, b });
+
+    this.activePower.onTurnResolved(this._powerContext());
   }
 
   _handleTimeout() {

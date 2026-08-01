@@ -77,7 +77,18 @@ export class Card {
   }
 
   flip() {
-    if (this.isAnimating || this.matched) return;
+    if (this.matched) return;
+
+    if (this.isAnimating) {
+      // A revert flip can be triggered while the original up-flip is still
+      // mid-tween (e.g. a mismatch resolving right at the edge of its
+      // delay). Snap the in-progress tween to completion first instead of
+      // silently dropping this call, which would otherwise strand the card
+      // face-up forever.
+      this.mesh.rotation.y = this._flipTo;
+      this.faceUp = !this.faceUp;
+    }
+
     this.isAnimating = true;
     this._flipElapsed = 0;
     this._flipFrom = this.mesh.rotation.y;
