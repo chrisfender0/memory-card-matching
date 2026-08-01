@@ -204,3 +204,20 @@ const TOUCH_OF_DEATH_HUE = 355; // dark red
 export function generateTouchOfDeathIcon() {
   return generateIcon('touch-of-death', TOUCH_OF_DEATH_HUE, drawSkullGlyph);
 }
+
+function drawFingerprintGlyph(ctx, cx, cy, r) {
+  ctx.lineCap = 'round';
+  const loops = 4;
+  for (let i = 0; i < loops; i++) {
+    const loopR = r * (0.35 + i * 0.16);
+    ctx.beginPath();
+    ctx.arc(cx, cy + r * 0.1, loopR, Math.PI * 1.15, Math.PI * 2.75);
+    ctx.stroke();
+  }
+}
+
+const GREASY_FINGERS_HUE = 42; // amber/yellow
+
+export function generateGreasyFingersIcon() {
+  return generateIcon('greasy-fingers', GREASY_FINGERS_HUE, drawFingerprintGlyph);
+}
