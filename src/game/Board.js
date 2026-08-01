@@ -11,6 +11,10 @@ export const LEVELS = {
 const GRID_MARGIN = 0.92; // fraction of the available frustum the grid may use
 const CARD_FILL = 0.88; // fraction of each cell a card occupies (rest is gap)
 
+// Per-card stagger for the deal-in entrance — capped so a full 8x8 board
+// doesn't take too long for the last card to start.
+const ENTRANCE_STAGGER = 0.015; // seconds
+
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -77,6 +81,13 @@ export class Board {
     });
   }
 
+  // Staggered scale-in for a freshly-dealt board, instead of cards popping
+  // in instantly. Call after layout() so each card already has its final
+  // grid position/size to animate up to.
+  playEntrance() {
+    this.cards.forEach((card, i) => card.playEntrance(i * ENTRANCE_STAGGER));
+  }
+
   // Injects `n` new face-down pairs (e.g. Luck of the Draw's mismatch-streak
   // penalty). Existing cards' col/row only depend on their own (unchanged)
   // index and `cols`, so appending new cards past the current end and
@@ -110,6 +121,8 @@ export class Board {
     if (this._lastLayoutWidth != null) {
       this.layout(this._lastLayoutWidth, this._lastLayoutHeight);
     }
+
+    newCards.forEach((card, i) => card.playEntrance(i * ENTRANCE_STAGGER));
   }
 
   dispose() {

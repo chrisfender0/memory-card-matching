@@ -13,12 +13,26 @@ const SHAKE_POSITION_AMPLITUDE = 0.03;
 const SHAKE_ROTATION_AMPLITUDE = THREE.MathUtils.degToRad(4);
 const EXPLODE_DURATION = 0.5; // seconds
 const EXPLODE_DISTANCE = 7; // world units — clears the board/frustum
-const MATCH_GLOW_COLOR = new THREE.Color(0x2ecc71); // green, distinct from a future red mismatch flash
+const MATCH_GLOW_COLOR = new THREE.Color(0x2ecc71); // green, distinct from the red mismatch flash
+const MISMATCH_GLOW_COLOR = new THREE.Color(0xe74c3c); // red
 const TELEPATHY_GLOW_COLOR = new THREE.Color(0x9b59b6); // purple, matches the Telepathy power's icon
 const NO_GLOW_COLOR = new THREE.Color(0x000000);
 
+// Mismatch shake — much shorter/lighter than the match shake so the two read
+// as distinct, and finishes well before MISMATCH_DELAY so the card is back
+// at rest before GameController flips it back down.
+const MISMATCH_SHAKE_DURATION = 0.35; // seconds
+const MISMATCH_SHAKE_STEP = 0.06; // seconds between jitter direction flips
+const MISMATCH_SHAKE_AMPLITUDE = 0.04;
+
+const ENTRANCE_DURATION = 0.35; // seconds
+
 function easeInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+}
+
+function easeOutCubic(t) {
+  return 1 - (1 - t) ** 3;
 }
 
 // Shared by every card — BoxGeometry side faces are never textured.
@@ -37,6 +51,8 @@ export class Card {
     this._flipTo = 0;
     this._baseScale = size;
     this._matchAnim = null;
+    this._mismatchAnim = null;
+    this._entranceAnim = null;
 
     const geometry = new THREE.BoxGeometry(CARD_WIDTH, CARD_HEIGHT, CARD_DEPTH);
 
@@ -86,6 +102,29 @@ export class Card {
     const backMaterial = this.mesh.material[5];
     backMaterial.emissive = active ? TELEPATHY_GLOW_COLOR : NO_GLOW_COLOR;
     backMaterial.emissiveIntensity = active ? 0.7 : 0;
+  }
+
+  // Brief in-place shake + red flash so a mismatch reads as distinct from a
+  // match before GameController flips the pair back down.
+  playMismatchShake() {
+    if (this.matched) return;
+
+    const frontMaterial = this.mesh.material[4];
+    frontMaterial.emissive = MISMATCH_GLOW_COLOR;
+    frontMaterial.emissiveIntensity = 0.6;
+
+    this._mismatchAnim = {
+      elapsed: 0,
+      basePosition: this.mesh.position.clone(),
+    };
+  }
+
+  // Staggered scale-in from nothing, used when a fresh board (or an
+  // in-flight power-injected pair) first appears instead of popping in.
+  playEntrance(delaySeconds = 0) {
+    this.mesh.visible = false;
+    this.mesh.scale.setScalar(0);
+    this._entranceAnim = { delay: delaySeconds, elapsed: 0 };
   }
 
   flip() {
@@ -147,9 +186,18 @@ export class Card {
   }
 
   update(deltaTime) {
+    if (this._entranceAnim) {
+      this._updateEntrance(deltaTime);
+      return;
+    }
+
     if (this._matchAnim) {
       this._updateMatchAnimation(deltaTime);
       return;
+    }
+
+    if (this._mismatchAnim) {
+      this._updateMismatchShake(deltaTime);
     }
 
     if (!this.isAnimating) return;
@@ -203,6 +251,38 @@ export class Card {
 
     if (t >= 1) {
       this._finishMatchAnimation();
+    }
+  }
+
+  _updateMismatchShake(deltaTime) {
+    const anim = this._mismatchAnim;
+    anim.elapsed += deltaTime;
+
+    const step = Math.floor(anim.elapsed / MISMATCH_SHAKE_STEP);
+    const dirX = step % 2 === 0 ? 1 : -1;
+    this.mesh.position.x = anim.basePosition.x + dirX * MISMATCH_SHAKE_AMPLITUDE;
+
+    if (anim.elapsed >= MISMATCH_SHAKE_DURATION) {
+      this.mesh.position.copy(anim.basePosition);
+      this._mismatchAnim = null;
+
+      const frontMaterial = this.mesh.material[4];
+      frontMaterial.emissive = NO_GLOW_COLOR;
+      frontMaterial.emissiveIntensity = 0;
+    }
+  }
+
+  _updateEntrance(deltaTime) {
+    const anim = this._entranceAnim;
+    anim.elapsed += deltaTime;
+    if (anim.elapsed < anim.delay) return;
+
+    this.mesh.visible = true;
+    const t = Math.min((anim.elapsed - anim.delay) / ENTRANCE_DURATION, 1);
+    this.mesh.scale.setScalar(this._baseScale * easeOutCubic(t));
+
+    if (t >= 1) {
+      this._entranceAnim = null;
     }
   }
 

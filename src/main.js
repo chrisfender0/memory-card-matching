@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Board } from './game/Board.js';
 import { GameController } from './game/GameController.js';
+import { InputController } from './game/InputController.js';
 import { configureSession, gameSession } from './game/GameSession.js';
 import { addScore } from './storage/leaderboard.js';
 import { registerScreen, showScreen } from './ui/screenManager.js';
@@ -43,27 +44,7 @@ let controller = null;
 
 const hud = initHud();
 
-// Temporary debug wiring: routes taps through GameController so the match
-// rules can be exercised end-to-end before session 6 formalizes input.
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
-
-function onPointerDown(event) {
-  if (!controller) return;
-
-  const rect = canvas.getBoundingClientRect();
-  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-  raycaster.setFromCamera(pointer, camera);
-  const targets = board.cards.filter((card) => !card.matched).map((card) => card.mesh);
-  const hits = raycaster.intersectObjects(targets);
-  if (hits.length > 0) {
-    controller.selectCard(hits[0].object.userData.card);
-  }
-}
-
-canvas.addEventListener('pointerdown', onPointerDown);
+const input = new InputController(canvas, camera);
 
 function resize() {
   aspect = window.innerWidth / window.innerHeight;
@@ -102,23 +83,34 @@ function handleGameEnd(payload) {
     date: new Date().toISOString(),
   });
 
-  resultScreen.setResult(payload);
+  // Show the screen before setResult() so its confetti canvas reads a
+  // non-zero size (result-screen carries `hidden` — and display:none — until now).
   showScreen('result');
+  resultScreen.setResult(payload);
+}
+
+function disposeBoard() {
+  if (board) {
+    scene.remove(board.group);
+    board.dispose();
+    board = null;
+  }
+  controller = null;
+  input.setTargets(null, null);
 }
 
 function startGame(playerName, level, powersEnabled = false, selectedPowerId = null) {
   configureSession(playerName, level, powersEnabled, selectedPowerId);
 
-  if (board) {
-    scene.remove(board.group);
-    board.dispose();
-  }
+  disposeBoard();
 
   board = new Board(level);
   scene.add(board.group);
   board.layout(FRUSTUM_HEIGHT * aspect, FRUSTUM_HEIGHT);
+  board.playEntrance();
 
   controller = new GameController(board);
+  input.setTargets(board, controller);
   controller.on('move', ({ moves }) => hud.setMoves(moves));
   controller.on('tick', ({ secondsRemaining }) => hud.setSeconds(secondsRemaining));
   controller.on('match', ({ score }) => hud.setScore(score));
@@ -149,13 +141,17 @@ registerScreen(
 const resultScreen = initResult({
   onPlayAgain: () =>
     startGame(gameSession.playerName, gameSession.level, gameSession.powersEnabled, gameSession.selectedPowerId),
-  onMenu: () => showScreen('landing'),
+  onMenu: () => {
+    disposeBoard();
+    showScreen('landing');
+  },
 });
 registerScreen('result', resultScreen);
 
 hud.onMenu(() => {
   if (controller) controller.timer.pause();
   hud.hide();
+  disposeBoard();
   showScreen('landing');
 });
 
