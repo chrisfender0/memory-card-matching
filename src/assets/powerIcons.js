@@ -115,3 +115,43 @@ const LUCK_HUE = 130; // green
 export function generateLuckOfTheDrawIcon() {
   return generateIcon('luck-of-the-draw', LUCK_HUE, drawDiceFaceGlyph);
 }
+
+function drawSnowflakeGlyph(ctx, cx, cy, r) {
+  ctx.lineCap = 'round';
+  for (let arm = 0; arm < 3; arm++) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate((arm * Math.PI) / 3);
+
+    ctx.beginPath();
+    ctx.moveTo(0, -r);
+    ctx.lineTo(0, r);
+    ctx.moveTo(0, -r);
+    ctx.lineTo(0, r);
+    ctx.stroke();
+
+    // Branch ticks along each arm, mirrored on both sides.
+    [-0.55, 0.55].forEach((along) => {
+      const y = along * r;
+      const branch = r * 0.32;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(-branch, y - branch * Math.sign(along));
+      ctx.moveTo(0, y);
+      ctx.lineTo(branch, y - branch * Math.sign(along));
+      ctx.stroke();
+    });
+
+    ctx.restore();
+  }
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.16, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+const COLD_AS_ICE_HUE = 195; // ice-blue
+
+export function generateColdAsIceIcon() {
+  return generateIcon('cold-as-ice', COLD_AS_ICE_HUE, drawSnowflakeGlyph);
+}

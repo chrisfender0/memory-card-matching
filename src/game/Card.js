@@ -16,6 +16,8 @@ const EXPLODE_DISTANCE = 7; // world units — clears the board/frustum
 const MATCH_GLOW_COLOR = new THREE.Color(0x2ecc71); // green, distinct from the red mismatch flash
 const MISMATCH_GLOW_COLOR = new THREE.Color(0xe74c3c); // red
 const TELEPATHY_GLOW_COLOR = new THREE.Color(0x9b59b6); // purple, matches the Telepathy power's icon
+const FROZEN_GLOW_COLOR = new THREE.Color(0x5dd5f5); // ice-blue, matches the Cold as Ice power's icon
+const FROZEN_GLOW_INTENSITY = 0.5;
 const NO_GLOW_COLOR = new THREE.Color(0x000000);
 
 // Mismatch shake — much shorter/lighter than the match shake so the two read
@@ -45,6 +47,8 @@ export class Card {
     this.matched = false;
     this.isAnimating = false;
     this.telepathyFlagged = false;
+    this.frozen = false;
+    this.iceLocked = false;
 
     this._flipElapsed = 0;
     this._flipFrom = 0;
@@ -102,6 +106,27 @@ export class Card {
     const backMaterial = this.mesh.material[5];
     backMaterial.emissive = active ? TELEPATHY_GLOW_COLOR : NO_GLOW_COLOR;
     backMaterial.emissiveIntensity = active ? 0.7 : 0;
+  }
+
+  // Persistent ice-blue tint on the front face for Cold as Ice — the card
+  // stays face-up indefinitely, so this needs to survive (and be restored
+  // after) the mismatch shake's own emissive flash, unlike Telepathy's
+  // back-face highlight which only ever applies while face-down.
+  setFrozen(active) {
+    this.frozen = active;
+    const frontMaterial = this.mesh.material[4];
+    frontMaterial.emissive = active ? FROZEN_GLOW_COLOR : NO_GLOW_COLOR;
+    frontMaterial.emissiveIntensity = active ? FROZEN_GLOW_INTENSITY : 0;
+  }
+
+  // Cold as Ice's escalation lock — the card stays face-down and can't be
+  // selected at all until every active lock clears, so the tint goes on the
+  // back (the only side visible) rather than the front.
+  setIceLocked(active) {
+    this.iceLocked = active;
+    const backMaterial = this.mesh.material[5];
+    backMaterial.emissive = active ? FROZEN_GLOW_COLOR : NO_GLOW_COLOR;
+    backMaterial.emissiveIntensity = active ? FROZEN_GLOW_INTENSITY : 0;
   }
 
   // Brief in-place shake + red flash so a mismatch reads as distinct from a
@@ -267,8 +292,8 @@ export class Card {
       this._mismatchAnim = null;
 
       const frontMaterial = this.mesh.material[4];
-      frontMaterial.emissive = NO_GLOW_COLOR;
-      frontMaterial.emissiveIntensity = 0;
+      frontMaterial.emissive = this.frozen ? FROZEN_GLOW_COLOR : NO_GLOW_COLOR;
+      frontMaterial.emissiveIntensity = this.frozen ? FROZEN_GLOW_INTENSITY : 0;
     }
   }
 

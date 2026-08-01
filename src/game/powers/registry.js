@@ -2,10 +2,12 @@ import { NoOpPower } from './NoOpPower.js';
 import { Telepathy } from './Telepathy.js';
 import { TimeTraveler } from './TimeTraveler.js';
 import { LuckOfTheDraw } from './LuckOfTheDraw.js';
+import { ColdAsIce } from './ColdAsIce.js';
 import {
   generateTelepathyIcon,
   generateTimeTravelerIcon,
   generateLuckOfTheDrawIcon,
+  generateColdAsIceIcon,
 } from '../../assets/powerIcons.js';
 
 // Populated in full across sessions 10.2.1-10.2.6, each entries shaped:
@@ -32,6 +34,14 @@ export const POWERS = [
     description: 'Random flips sometimes auto-match. 5 mismatches in a row deals 2 fresh pairs onto the board.',
     icon: generateLuckOfTheDrawIcon(),
     PowerClass: LuckOfTheDraw,
+  },
+  {
+    id: 'cold-as-ice',
+    name: 'Cold as Ice',
+    description:
+      'Every 3rd move freezes a random card face-up — only one at a time. Left unmatched, another card locks face-down every 3 moves after that, until any match breaks the ice.',
+    icon: generateColdAsIceIcon(),
+    PowerClass: ColdAsIce,
   },
 ];
 
