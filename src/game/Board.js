@@ -52,6 +52,9 @@ export class Board {
   // Fits the grid within the given world-space width/height (the camera's
   // current visible frustum size), called on build and again on every resize.
   layout(worldWidth, worldHeight) {
+    this._lastLayoutWidth = worldWidth;
+    this._lastLayoutHeight = worldHeight;
+
     const availableWidth = worldWidth * GRID_MARGIN;
     const availableHeight = worldHeight * GRID_MARGIN;
 
@@ -72,6 +75,41 @@ export class Board {
       card.mesh.position.set(x, y, 0);
       card.setSize(cardSize);
     });
+  }
+
+  // Injects `n` new face-down pairs (e.g. Luck of the Draw's mismatch-streak
+  // penalty). Existing cards' col/row only depend on their own (unchanged)
+  // index and `cols`, so appending new cards past the current end and
+  // growing `rows` to fit them never moves or resizes anything already
+  // matched/removed — only the live grid reflows to make room.
+  addPairs(n) {
+    const usedFaceIds = new Set(this.cards.map((card) => card.faceId));
+    const unusedFaceIds = CARD_FACES.map((face) => face.id).filter((id) => !usedFaceIds.has(id));
+    const inPlayFaceIds = this.cards.filter((card) => !card.matched).map((card) => card.faceId);
+
+    const newFaceIds = [];
+    for (let i = 0; i < n; i++) {
+      if (unusedFaceIds.length > 0) {
+        newFaceIds.push(unusedFaceIds.shift());
+      } else {
+        // Pool exhausted (e.g. hard mode already uses all 32 faces) — reuse
+        // a face already in play so the injected pair still has a partner.
+        newFaceIds.push(inPlayFaceIds[Math.floor(Math.random() * inPlayFaceIds.length)]);
+      }
+    }
+
+    const newCards = shuffle([...newFaceIds, ...newFaceIds]).map((faceId) => {
+      const card = new Card(faceId, { x: 0, y: 0, z: 0 });
+      this.group.add(card.mesh);
+      return card;
+    });
+
+    this.cards.push(...newCards);
+    this.rows = Math.ceil(this.cards.length / this.cols);
+
+    if (this._lastLayoutWidth != null) {
+      this.layout(this._lastLayoutWidth, this._lastLayoutHeight);
+    }
   }
 
   dispose() {

@@ -14,6 +14,8 @@ const SHAKE_ROTATION_AMPLITUDE = THREE.MathUtils.degToRad(4);
 const EXPLODE_DURATION = 0.5; // seconds
 const EXPLODE_DISTANCE = 7; // world units — clears the board/frustum
 const MATCH_GLOW_COLOR = new THREE.Color(0x2ecc71); // green, distinct from a future red mismatch flash
+const TELEPATHY_GLOW_COLOR = new THREE.Color(0x9b59b6); // purple, matches the Telepathy power's icon
+const NO_GLOW_COLOR = new THREE.Color(0x000000);
 
 function easeInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
@@ -28,6 +30,7 @@ export class Card {
     this.faceUp = false;
     this.matched = false;
     this.isAnimating = false;
+    this.telepathyFlagged = false;
 
     this._flipElapsed = 0;
     this._flipFrom = 0;
@@ -74,6 +77,15 @@ export class Card {
   setSize(size) {
     this._baseScale = size;
     this.mesh.scale.setScalar(size * (this.matched ? MATCHED_SCALE : 1));
+  }
+
+  // Tints the card back (the side actually visible while face-down) so a
+  // Telepathy hint reads as "this card, right there" without revealing the
+  // face art underneath.
+  setTelepathyHighlight(active) {
+    const backMaterial = this.mesh.material[5];
+    backMaterial.emissive = active ? TELEPATHY_GLOW_COLOR : NO_GLOW_COLOR;
+    backMaterial.emissiveIntensity = active ? 0.7 : 0;
   }
 
   flip() {

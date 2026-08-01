@@ -122,6 +122,7 @@ function startGame(playerName, level, powersEnabled = false, selectedPowerId = n
   controller.on('move', ({ moves }) => hud.setMoves(moves));
   controller.on('tick', ({ secondsRemaining }) => hud.setSeconds(secondsRemaining));
   controller.on('match', ({ score }) => hud.setScore(score));
+  controller.on('timeAdjust', ({ delta }) => hud.showTimeAdjust(delta));
   controller.on('win', (payload) => handleGameEnd(payload));
   controller.on('timeout', (payload) => handleGameEnd(payload));
 

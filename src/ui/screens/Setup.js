@@ -1,4 +1,5 @@
 import { getLastName, setLastName } from '../../storage/leaderboard.js';
+import { initPowerSelector } from './PowerSelector.js';
 
 const MAX_NAME_LENGTH = 20;
 
@@ -11,9 +12,14 @@ export function initSetup({ onPlay }) {
   const powerSelectorSlot = document.getElementById('power-selector-slot');
 
   let selectedLevel = null;
-  // Selecting a power is built in session 10.1 — for now the toggle has
-  // nothing that can set this, so Play stays disabled while powers are on.
   let selectedPowerId = null;
+
+  const powerSelector = initPowerSelector({
+    onConfirm: (powerId) => {
+      selectedPowerId = powerId;
+      updatePlayEnabled();
+    },
+  });
 
   function isValid() {
     const name = nameInput.value.trim();
@@ -40,6 +46,7 @@ export function initSetup({ onPlay }) {
   powersToggle.addEventListener('change', () => {
     // No stale selection carried across a toggle flip — re-confirm each time.
     selectedPowerId = null;
+    powerSelector.reset();
     powerSelectorSlot.hidden = !powersToggle.checked;
     updatePlayEnabled();
   });
@@ -63,6 +70,7 @@ export function initSetup({ onPlay }) {
       selectedPowerId = null;
       tiles.forEach((t) => t.classList.remove('selected'));
       powersToggle.checked = false;
+      powerSelector.reset();
       powerSelectorSlot.hidden = true;
       updatePlayEnabled();
       screen.hidden = false;

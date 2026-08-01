@@ -12,6 +12,9 @@ export class PowerBase {
   onFlipFirstCard(card, ctx) {}
 
   // Called once a match is confirmed, before scoring/animation finish.
+  // May return a score multiplier (e.g. 0.5 for a discounted match) —
+  // GameController applies it to this match's ScoreController.recordMatch
+  // call. Returning undefined (the default) awards full value.
   onMatch(cardA, cardB, ctx) {}
 
   // Called once a mismatch is confirmed.

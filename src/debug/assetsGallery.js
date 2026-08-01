@@ -1,4 +1,5 @@
 import { generateCardFace, generateCardBack, CARD_FACES } from '../assets/cardArt.js';
+import { POWERS } from '../game/powers/registry.js';
 
 // Mirrors the GLYPHS order in cardArt.js.
 const SHAPE_NAMES = [
@@ -8,6 +9,7 @@ const SHAPE_NAMES = [
 
 const facesEl = document.getElementById('faces');
 const backEl = document.getElementById('back');
+const powersEl = document.getElementById('powers');
 const timingEl = document.getElementById('timing');
 
 const t0 = performance.now();
@@ -35,5 +37,21 @@ const backImg = document.createElement('img');
 backImg.src = backTexture.image.toDataURL();
 backImg.alt = 'card back';
 backEl.appendChild(backImg);
+
+POWERS.forEach(({ id, name, description, icon }) => {
+  const tile = document.createElement('div');
+  tile.className = 'tile';
+
+  const img = document.createElement('img');
+  img.src = icon;
+  img.alt = name;
+
+  const label = document.createElement('div');
+  label.className = 'label';
+  label.textContent = `${name}\n${id}\n${description}`;
+
+  tile.append(img, label);
+  powersEl.appendChild(tile);
+});
 
 timingEl.textContent = `Generated 32 faces + 1 back in ${genElapsed.toFixed(2)}ms (excludes PNG export for this preview).`;
