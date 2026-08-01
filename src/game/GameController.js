@@ -55,7 +55,14 @@ export class GameController extends Emitter {
 
   selectCard(card) {
     if (this.locked) return;
-    if (card.matched || card.faceUp || card.isAnimating) return;
+    if (card.matched || card.isAnimating) return;
+    // A Cold as Ice escalation lock makes a face-down card unselectable
+    // outright until every active lock clears.
+    if (card.iceLocked) return;
+    // A frozen (Cold as Ice) card stays permanently face-up but remains
+    // targetable for matching — every other face-up card is mid-turn and
+    // off-limits until it resolves.
+    if (card.faceUp && !card.frozen) return;
     if (this.selected.includes(card)) return;
 
     if (!this._timerStarted) {
@@ -63,8 +70,10 @@ export class GameController extends Emitter {
       this.timer.start();
     }
 
-    card.flip();
-    playFlip();
+    if (!card.faceUp) {
+      card.flip();
+      playFlip();
+    }
     this.selected.push(card);
 
     if (this.selected.length === 1) {
@@ -146,8 +155,9 @@ export class GameController extends Emitter {
     this.cardMismatchCounts.set(b, (this.cardMismatchCounts.get(b) || 0) + 1);
     this.activePower.onMismatch(a, b, this._powerContext());
 
-    a.flip();
-    b.flip();
+    // Frozen cards (Cold as Ice) skip the flip-back entirely and stay face-up.
+    if (!a.frozen) a.flip();
+    if (!b.frozen) b.flip();
     this.selected = [];
     this.locked = false;
     this.scoreController.recordMismatch();
