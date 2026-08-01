@@ -2,6 +2,7 @@ import { Emitter } from '../utils/Emitter.js';
 
 const DEFAULT_DURATION_SECONDS = 120;
 const TICK_INTERVAL_MS = 200;
+const MAX_DURATION_SECONDS = 300; // 5:00 ceiling so a time-adding power can't run the clock forever
 
 export class Timer extends Emitter {
   constructor(durationSeconds = DEFAULT_DURATION_SECONDS) {
@@ -36,6 +37,23 @@ export class Timer extends Emitter {
 
   getSecondsRemaining() {
     return Math.max(0, Math.floor(this._remaining));
+  }
+
+  // Positive or negative — clamped to [0, MAX_DURATION_SECONDS]. Emits
+  // 'tick' immediately so the HUD reflects the change right away rather
+  // than waiting for the next interval, and 'adjust' (the nominal, requested
+  // delta) so the UI can call out a power-driven change distinctly from
+  // normal per-second ticking.
+  addSeconds(n) {
+    this._remaining = Math.min(MAX_DURATION_SECONDS, Math.max(0, this._remaining + n));
+
+    const wholeRemaining = this.getSecondsRemaining();
+    if (wholeRemaining !== this._lastWholeSecond) {
+      this._lastWholeSecond = wholeRemaining;
+      this.emit('tick', wholeRemaining);
+    }
+
+    if (n !== 0) this.emit('adjust', n);
   }
 
   _tick() {

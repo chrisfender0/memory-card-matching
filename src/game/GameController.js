@@ -33,6 +33,7 @@ export class GameController extends Emitter {
     this.activePower.onGameStart(this._powerContext());
 
     this.timer.on('tick', (secondsRemaining) => this.emit('tick', { secondsRemaining }));
+    this.timer.on('adjust', (delta) => this.emit('timeAdjust', { delta }));
     this.timer.on('timeout', () => this._handleTimeout());
   }
 
@@ -84,7 +85,9 @@ export class GameController extends Emitter {
 
   _resolveMatch(a, b) {
     this.mismatchStreak = 0;
-    this.activePower.onMatch(a, b, this._powerContext());
+    // A power's onMatch can return a score multiplier (e.g. Telepathy's
+    // discounted matches) — defaults to a plain full-value match.
+    const multiplier = this.activePower.onMatch(a, b, this._powerContext()) ?? 1;
 
     this.matchedPairs += 1;
     this.selected = [];
@@ -92,7 +95,7 @@ export class GameController extends Emitter {
     // onCardAnimDone below once both cards have fully left the board.
 
     const secondsRemaining = this.timer.getSecondsRemaining();
-    const breakdown = this.scoreController.recordMatch(secondsRemaining);
+    const breakdown = this.scoreController.recordMatch(secondsRemaining, { multiplier });
 
     // Points are awarded immediately on match detection — only the visual
     // removal (and, if this was the last pair, the win event) is deferred.

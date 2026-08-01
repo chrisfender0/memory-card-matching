@@ -8,11 +8,12 @@ export class ScoreController {
     this.currentStreak = 0;
   }
 
-  recordMatch(secondsRemaining) {
-    const basePoints = BASE_POINTS_FLOOR + secondsRemaining;
+  recordMatch(secondsRemaining, { multiplier = 1 } = {}) {
+    const basePoints = Math.round((BASE_POINTS_FLOOR + secondsRemaining) * multiplier);
     this.currentStreak += 1;
 
-    const streakBonus = this.currentStreak >= STREAK_BONUS_THRESHOLD ? STREAK_BONUS_POINTS : 0;
+    const streakBonus =
+      this.currentStreak >= STREAK_BONUS_THRESHOLD ? Math.round(STREAK_BONUS_POINTS * multiplier) : 0;
     const totalAwarded = basePoints + streakBonus;
     this.score += totalAwarded;
 

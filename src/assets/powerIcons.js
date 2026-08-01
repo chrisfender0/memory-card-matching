@@ -1,7 +1,6 @@
-// Small canvas-drawn icon set used to preview the Powers carousel (session
-// 10.1) before session 10.2 supplies real power art/copy. Deliberately
-// abstract (numbered shapes, no gameplay meaning) so nobody mistakes these
-// for final content.
+// Canvas-drawn power icons — one glyph per power, badge-style (rounded
+// gradient background + a centered shape), rendered in the DOM carousel
+// (not the three.js scene). Each power exports its own generateXIcon().
 const SIZE = 128;
 
 function drawIconBackground(ctx, hue) {
@@ -22,40 +21,7 @@ function drawIconBackground(ctx, hue) {
   ctx.stroke();
 }
 
-function drawCircleGlyph(ctx, cx, cy, r) {
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-}
-
-function drawTriangleGlyph(ctx, cx, cy, r) {
-  const points = [];
-  for (let i = 0; i < 3; i++) {
-    const angle = -Math.PI / 2 + (i * 2 * Math.PI) / 3;
-    points.push([cx + r * Math.cos(angle), cy + r * Math.sin(angle)]);
-  }
-  ctx.beginPath();
-  points.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-}
-
-function drawDiamondGlyph(ctx, cx, cy, r) {
-  ctx.beginPath();
-  ctx.moveTo(cx, cy - r);
-  ctx.lineTo(cx + r, cy);
-  ctx.lineTo(cx, cy + r);
-  ctx.lineTo(cx - r, cy);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-}
-
-const GLYPHS = [drawCircleGlyph, drawTriangleGlyph, drawDiamondGlyph];
-
-function drawGlyph(ctx, shapeFn, hue) {
+function drawGlyph(ctx, drawShape, hue) {
   const cx = SIZE / 2;
   const cy = SIZE / 2;
   const r = SIZE * 0.24;
@@ -69,14 +35,13 @@ function drawGlyph(ctx, shapeFn, hue) {
   ctx.lineWidth = SIZE * 0.02;
   ctx.lineJoin = 'round';
 
-  shapeFn(ctx, cx, cy, r);
+  drawShape(ctx, cx, cy, r);
 }
 
 const iconCache = new Map();
 
-export function generatePowerIcon(shapeIndex, hue) {
-  const key = `${shapeIndex}-${hue}`;
-  if (iconCache.has(key)) return iconCache.get(key);
+function generateIcon(cacheKey, hue, drawShape) {
+  if (iconCache.has(cacheKey)) return iconCache.get(cacheKey);
 
   const canvas = document.createElement('canvas');
   canvas.width = SIZE;
@@ -84,16 +49,69 @@ export function generatePowerIcon(shapeIndex, hue) {
   const ctx = canvas.getContext('2d');
 
   drawIconBackground(ctx, hue);
-  drawGlyph(ctx, GLYPHS[shapeIndex % GLYPHS.length], hue);
+  drawGlyph(ctx, drawShape, hue);
 
   const dataUrl = canvas.toDataURL();
-  iconCache.set(key, dataUrl);
+  iconCache.set(cacheKey, dataUrl);
   return dataUrl;
 }
 
-// Manifest for the placeholder registry entries — swap out in session 10.2.
-export const PLACEHOLDER_POWER_ICONS = [
-  { shapeIndex: 0, hue: 210 },
-  { shapeIndex: 1, hue: 130 },
-  { shapeIndex: 2, hue: 330 },
-];
+function drawRingsGlyph(ctx, cx, cy, r) {
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.arc(cx, cy, r * 0.5, 0, Math.PI * 2, true);
+  ctx.fill('evenodd');
+  ctx.stroke();
+}
+
+const TELEPATHY_HUE = 285; // purple
+
+export function generateTelepathyIcon() {
+  return generateIcon('telepathy', TELEPATHY_HUE, drawRingsGlyph);
+}
+
+function drawHourglassGlyph(ctx, cx, cy, r) {
+  ctx.beginPath();
+  // top bulb, pinching to a point at center
+  ctx.moveTo(cx - r, cy - r);
+  ctx.lineTo(cx + r, cy - r);
+  ctx.lineTo(cx, cy);
+  ctx.closePath();
+  // bottom bulb, pinching to a point at center
+  ctx.moveTo(cx - r, cy + r);
+  ctx.lineTo(cx + r, cy + r);
+  ctx.lineTo(cx, cy);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+}
+
+const TIME_TRAVELER_HUE = 190; // teal/blue
+
+export function generateTimeTravelerIcon() {
+  return generateIcon('time-traveler', TIME_TRAVELER_HUE, drawHourglassGlyph);
+}
+
+function drawDiceFaceGlyph(ctx, cx, cy, r) {
+  const offset = r * 0.55;
+  const dotRadius = r * 0.22;
+  const positions = [
+    [cx - offset, cy - offset],
+    [cx + offset, cy - offset],
+    [cx, cy],
+    [cx - offset, cy + offset],
+    [cx + offset, cy + offset],
+  ];
+  positions.forEach(([x, y]) => {
+    ctx.beginPath();
+    ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  });
+}
+
+const LUCK_HUE = 130; // green
+
+export function generateLuckOfTheDrawIcon() {
+  return generateIcon('luck-of-the-draw', LUCK_HUE, drawDiceFaceGlyph);
+}

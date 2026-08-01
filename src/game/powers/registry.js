@@ -1,19 +1,39 @@
 import { NoOpPower } from './NoOpPower.js';
-import { generatePowerIcon, PLACEHOLDER_POWER_ICONS } from '../../assets/powerIcons.js';
+import { Telepathy } from './Telepathy.js';
+import { TimeTraveler } from './TimeTraveler.js';
+import { LuckOfTheDraw } from './LuckOfTheDraw.js';
+import {
+  generateTelepathyIcon,
+  generateTimeTravelerIcon,
+  generateLuckOfTheDrawIcon,
+} from '../../assets/powerIcons.js';
 
-// Populated in session 10.2 with real entries shaped:
+// Populated in full across sessions 10.2.1-10.2.6, each entries shaped:
 // { id, name, description, icon, PowerClass }
-//
-// The 3 entries below are placeholders (abstract icon, NoOpPower behavior)
-// so the session 10.1 carousel has real shapes to render/scroll/select
-// against. Session 10.2 replaces this array — no shape change needed.
-export const POWERS = PLACEHOLDER_POWER_ICONS.map(({ shapeIndex, hue }, i) => ({
-  id: `placeholder-${i + 1}`,
-  name: `Power ${i + 1}`,
-  description: 'Placeholder power — real copy and effect arrive in session 10.2.',
-  icon: generatePowerIcon(shapeIndex, hue),
-  PowerClass: NoOpPower,
-}));
+export const POWERS = [
+  {
+    id: 'telepathy',
+    name: 'Telepathy',
+    description:
+      'After 3 mismatches, your next flip reveals its match with a purple glow — but that match is worth half points.',
+    icon: generateTelepathyIcon(),
+    PowerClass: Telepathy,
+  },
+  {
+    id: 'time-traveler',
+    name: 'Time Traveler',
+    description: 'Every match adds 5 seconds to the clock. 3 mismatches in a row costs you 2 seconds.',
+    icon: generateTimeTravelerIcon(),
+    PowerClass: TimeTraveler,
+  },
+  {
+    id: 'luck-of-the-draw',
+    name: 'Luck of the Draw',
+    description: 'Random flips sometimes auto-match. 5 mismatches in a row deals 2 fresh pairs onto the board.',
+    icon: generateLuckOfTheDrawIcon(),
+    PowerClass: LuckOfTheDraw,
+  },
+];
 
 // Falls back to NoOpPower for an unknown/missing id so a bad or stale
 // selection can never crash the game.

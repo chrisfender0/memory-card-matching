@@ -337,6 +337,56 @@ h2 {
   touch-action: manipulation;
 }
 
+/* --- Time adjust popup (Time Traveler and similar timer-affecting powers) --- */
+
+.time-adjust-popup {
+  position: fixed;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 44px;
+  font-weight: 800;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 6;
+  opacity: 0;
+}
+
+.time-adjust-popup[hidden] {
+  display: none;
+}
+
+.time-adjust-popup.positive {
+  color: #43d17a;
+}
+
+.time-adjust-popup.negative {
+  color: #e0545c;
+}
+
+.time-adjust-popup.playing {
+  animation: time-adjust-float 1s ease-out forwards;
+}
+
+@keyframes time-adjust-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -40%) scale(0.8);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -85%) scale(1);
+  }
+}
+
 /* --- Result screen --- */
 
 .result-stats {
