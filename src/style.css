@@ -418,20 +418,119 @@ h2 {
   transform: translateX(18px);
 }
 
-.power-selector-slot {
-  border: 1px dashed #33384a;
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-}
-
-.power-selector-slot[hidden] {
+#power-selector-slot[hidden] {
   display: none;
 }
 
-.power-selector-placeholder {
-  color: #888;
-  font-size: 14px;
+.power-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.power-carousel-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.power-carousel {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+  padding-inline: 10%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.power-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.power-card {
+  flex: 0 0 80%;
+  scroll-snap-align: center;
+  background: #1a1a24;
+  border: 2px solid #33384a;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.power-card.previewed {
+  border-color: #4f8ef7;
+  box-shadow: 0 0 0 2px rgba(79, 142, 247, 0.25);
+}
+
+.power-card.selected {
+  border-color: #43d17a;
+  box-shadow: 0 0 0 4px rgba(67, 209, 122, 0.35);
+}
+
+.power-card-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+}
+
+.power-card-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.power-card-desc {
+  font-size: 13px;
+  color: #aaa;
+  line-height: 1.4;
+}
+
+.power-arrow {
+  appearance: none;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #33384a;
+  background: #1a1a24;
+  color: #eee;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.power-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.power-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.power-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #33384a;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.power-dot.active {
+  background: #4f8ef7;
+  transform: scale(1.3);
+}
+
+.power-confirm-btn {
+  width: 100%;
 }
 
 .hud-power {
