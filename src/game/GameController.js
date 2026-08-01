@@ -18,6 +18,11 @@ export class GameController extends Emitter {
     this.matchedPairs = 0;
     this.totalPairs = board.cards.length / 2;
     this.locked = false;
+    // Set once the game has reached any end state (win, timeout, or a
+    // power's forced loss) so a still-in-flight async callback (e.g. a match
+    // animation completing after a forced loss already fired) can't emit a
+    // second, conflicting end-of-game event.
+    this._gameEnded = false;
 
     this.timer = new Timer(durationSeconds);
     this.scoreController = new ScoreController();
@@ -60,6 +65,9 @@ export class GameController extends Emitter {
     // A Cold as Ice escalation lock makes a face-down card unselectable
     // outright until every active lock clears.
     if (card.iceLocked) return;
+    // A Greasy Fingers mismatch-lock makes a face-down card unselectable
+    // until any match wipes every currently-greasy card clean.
+    if (card.greasy) return;
     // A frozen (Cold as Ice) card stays permanently face-up but remains
     // targetable for matching — every other face-up card is mid-turn and
     // off-limits until it resolves.
@@ -136,11 +144,16 @@ export class GameController extends Emitter {
     const onCardAnimDone = () => {
       pending -= 1;
       if (pending > 0) return;
+      // A power's forced loss (e.g. Touch of Death) may have already ended
+      // the game while this match's animation was still playing — don't
+      // re-unlock the board or fire a second end-of-game event on top of it.
+      if (this._gameEnded) return;
 
       this.locked = false;
       this.activePower.onTurnResolved(this._powerContext());
 
       if (isFinalPair) {
+        this._gameEnded = true;
         this.timer.pause();
         playWin();
         // Move-threshold bonus, then a flat time-remaining bonus (1 pt per
@@ -176,24 +189,55 @@ export class GameController extends Emitter {
     this.cardMismatchCounts.set(b, (this.cardMismatchCounts.get(b) || 0) + 1);
     this.activePower.onMismatch(a, b, this._powerContext());
 
-    // Frozen cards (Cold as Ice) skip the flip-back entirely and stay face-up.
+    // Frozen cards (Cold as Ice) skip the flip-back entirely and stay
+    // face-up; a card a power just force-matched inside onMismatch above
+    // (e.g. Touch of Death) is already `matched`, so flip() is a no-op for
+    // it too — only the other, still-genuinely-mismatched card flips back.
     if (!a.frozen) a.flip();
     if (!b.frozen) b.flip();
     this.selected = [];
-    this.locked = false;
-    this.scoreController.recordMismatch();
     this.emit('mismatch', { a, b });
 
+    // A power that force-matched one of these cards mid-hook already owns
+    // this turn's scoring/unlock/onTurnResolved via its own (async) match
+    // flow (see _resolveMatch) — don't stomp on it with the normal
+    // mismatch bookkeeping below.
+    if (a.matched || b.matched) return;
+
+    this.locked = false;
+    this.scoreController.recordMismatch();
     this.activePower.onTurnResolved(this._powerContext());
   }
 
   _handleTimeout() {
-    if (this.isWon()) return; // last match landed on the same tick as timeout
+    if (this._gameEnded || this.isWon()) return; // last match landed on the same tick as timeout
+    this._gameEnded = true;
     this.locked = true;
     this.emit('timeout', {
       won: false,
+      reason: 'timeout',
       moves: this.moves,
       score: this.score,
+      durationSeconds: this._elapsedSeconds(),
+      highestMatchPoints: this.scoreController.highestMatchPoints,
+    });
+  }
+
+  // Shared forced-loss path for powers that can end the game outright (e.g.
+  // Touch of Death) — distinct from the timeout path: locks input, zeroes
+  // the final score regardless of what was scored this game, and routes to
+  // the same game-over/leaderboard flow a timeout uses.
+  forceLoss(reason = 'forced-loss') {
+    if (this._gameEnded) return;
+    this._gameEnded = true;
+    this.locked = true;
+    this.selected = [];
+    this.timer.pause();
+    this.emit('loss', {
+      won: false,
+      reason,
+      moves: this.moves,
+      score: 0,
       durationSeconds: this._elapsedSeconds(),
       highestMatchPoints: this.scoreController.highestMatchPoints,
     });

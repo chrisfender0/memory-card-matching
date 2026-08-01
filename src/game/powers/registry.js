@@ -3,11 +3,15 @@ import { Telepathy } from './Telepathy.js';
 import { TimeTraveler } from './TimeTraveler.js';
 import { LuckOfTheDraw } from './LuckOfTheDraw.js';
 import { ColdAsIce } from './ColdAsIce.js';
+import { TouchOfDeath } from './TouchOfDeath.js';
+import { GreasyFingers } from './GreasyFingers.js';
 import {
   generateTelepathyIcon,
   generateTimeTravelerIcon,
   generateLuckOfTheDrawIcon,
   generateColdAsIceIcon,
+  generateTouchOfDeathIcon,
+  generateGreasyFingersIcon,
 } from '../../assets/powerIcons.js';
 
 // Populated in full across sessions 10.2.1-10.2.6, each entries shaped:
@@ -42,6 +46,22 @@ export const POWERS = [
       'Every 3rd move freezes a random card face-up — only one at a time. Left unmatched, another card locks face-down every 3 moves after that, until any match breaks the ice.',
     icon: generateColdAsIceIcon(),
     PowerClass: ColdAsIce,
+  },
+  {
+    id: 'touch-of-death',
+    name: 'Touch of Death',
+    description:
+      'Mismatch the same card twice and it auto-matches. Do it 3 times total, or twice in a row, and you instantly lose.',
+    icon: generateTouchOfDeathIcon(),
+    PowerClass: TouchOfDeath,
+  },
+  {
+    id: 'greasy-fingers',
+    name: 'Greasy Fingers',
+    description:
+      'Matching a pair sometimes flips another card for a 1-second peek — but not twice without a match in between. Mismatch a card 3 times and it gets too greasy to flip until your next match.',
+    icon: generateGreasyFingersIcon(),
+    PowerClass: GreasyFingers,
   },
 ];
 
