@@ -18,6 +18,8 @@ const MISMATCH_GLOW_COLOR = new THREE.Color(0xe74c3c); // red
 const TELEPATHY_GLOW_COLOR = new THREE.Color(0x9b59b6); // purple, matches the Telepathy power's icon
 const FROZEN_GLOW_COLOR = new THREE.Color(0x5dd5f5); // ice-blue, matches the Cold as Ice power's icon
 const FROZEN_GLOW_INTENSITY = 0.5;
+const GREASY_GLOW_COLOR = new THREE.Color(0xd4a017); // amber, matches the Greasy Fingers power's icon
+const GREASY_GLOW_INTENSITY = 0.5;
 const NO_GLOW_COLOR = new THREE.Color(0x000000);
 
 // Mismatch shake — much shorter/lighter than the match shake so the two read
@@ -49,6 +51,7 @@ export class Card {
     this.telepathyFlagged = false;
     this.frozen = false;
     this.iceLocked = false;
+    this.greasy = false;
 
     this._flipElapsed = 0;
     this._flipFrom = 0;
@@ -127,6 +130,17 @@ export class Card {
     const backMaterial = this.mesh.material[5];
     backMaterial.emissive = active ? FROZEN_GLOW_COLOR : NO_GLOW_COLOR;
     backMaterial.emissiveIntensity = active ? FROZEN_GLOW_INTENSITY : 0;
+  }
+
+  // Greasy Fingers' mismatch lock — too many mismatches leaves the card too
+  // greasy to get a grip on, so it stays face-down and unselectable until a
+  // match wipes every currently-greasy card clean. Same back-tint mechanism
+  // as setIceLocked, just a different color/owner.
+  setGreasy(active) {
+    this.greasy = active;
+    const backMaterial = this.mesh.material[5];
+    backMaterial.emissive = active ? GREASY_GLOW_COLOR : NO_GLOW_COLOR;
+    backMaterial.emissiveIntensity = active ? GREASY_GLOW_INTENSITY : 0;
   }
 
   // Brief in-place shake + red flash so a mismatch reads as distinct from a

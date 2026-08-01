@@ -59,7 +59,7 @@ export const POWERS = [
     id: 'greasy-fingers',
     name: 'Greasy Fingers',
     description:
-      'Matching a pair sometimes flips another card for a 1-second peek — but not twice without a match in between.',
+      'Matching a pair sometimes flips another card for a 1-second peek — but not twice without a match in between. Mismatch a card 3 times and it gets too greasy to flip until your next match.',
     icon: generateGreasyFingersIcon(),
     PowerClass: GreasyFingers,
   },

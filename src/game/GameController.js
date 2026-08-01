@@ -65,6 +65,9 @@ export class GameController extends Emitter {
     // A Cold as Ice escalation lock makes a face-down card unselectable
     // outright until every active lock clears.
     if (card.iceLocked) return;
+    // A Greasy Fingers mismatch-lock makes a face-down card unselectable
+    // until any match wipes every currently-greasy card clean.
+    if (card.greasy) return;
     // A frozen (Cold as Ice) card stays permanently face-up but remains
     // targetable for matching — every other face-up card is mid-turn and
     // off-limits until it resolves.
