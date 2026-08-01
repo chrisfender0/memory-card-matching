@@ -4,6 +4,7 @@ import { ScoreController } from './ScoreController.js';
 import { gameSession } from './GameSession.js';
 import { getPower } from './powers/registry.js';
 import { NoOpPower } from './powers/NoOpPower.js';
+import { playFlip, playMatch, playMismatch, playWin } from '../audio/sfx.js';
 
 const MISMATCH_DELAY = 800; // ms
 const GAME_DURATION_SECONDS = 120;
@@ -63,6 +64,7 @@ export class GameController extends Emitter {
     }
 
     card.flip();
+    playFlip();
     this.selected.push(card);
 
     if (this.selected.length === 1) {
@@ -79,12 +81,18 @@ export class GameController extends Emitter {
     if (a.faceId === b.faceId) {
       this._resolveMatch(a, b);
     } else {
+      // Shake/flash immediately (while still face-up) so the mismatch reads
+      // as distinct from a match, rather than waiting for the flip-back.
+      a.playMismatchShake();
+      b.playMismatchShake();
+      playMismatch();
       setTimeout(() => this._resolveMismatch(a, b), MISMATCH_DELAY);
     }
   }
 
   _resolveMatch(a, b) {
     this.mismatchStreak = 0;
+    playMatch();
     // A power's onMatch can return a score multiplier (e.g. Telepathy's
     // discounted matches) — defaults to a plain full-value match.
     const multiplier = this.activePower.onMatch(a, b, this._powerContext()) ?? 1;
@@ -123,6 +131,7 @@ export class GameController extends Emitter {
 
       if (isFinalPair) {
         this.timer.pause();
+        playWin();
         this.emit('win', { won: true, moves: this.moves, score: this.score });
       }
     };
