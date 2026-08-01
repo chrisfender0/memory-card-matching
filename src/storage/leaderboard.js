@@ -23,12 +23,22 @@ function writeJSON(key, value) {
   }
 }
 
+// Defaults for fields added after some entries were already saved, so old
+// entries don't break the detail view, toggle, or power filters.
+const ENTRY_DEFAULTS = {
+  durationSeconds: 0,
+  moves: 0,
+  highestMatchPoints: 0,
+  powerId: null,
+};
+
 export function getLeaderboard() {
   const entries = readJSON(LEADERBOARD_KEY, []);
-  return Array.isArray(entries) ? entries : [];
+  if (!Array.isArray(entries)) return [];
+  return entries.map((entry) => ({ ...ENTRY_DEFAULTS, ...entry }));
 }
 
-// entry: { name, score, level, date }
+// entry: { name, score, level, date, durationSeconds, moves, highestMatchPoints, powerId }
 export function addScore(entry) {
   const entries = getLeaderboard();
   entries.push(entry);

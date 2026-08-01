@@ -81,6 +81,10 @@ function handleGameEnd(payload) {
     score: payload.score,
     level: gameSession.level,
     date: new Date().toISOString(),
+    durationSeconds: payload.durationSeconds,
+    moves: payload.moves,
+    highestMatchPoints: payload.highestMatchPoints,
+    powerId: gameSession.powersEnabled ? gameSession.selectedPowerId : null,
   });
 
   // Show the screen before setResult() so its confetti canvas reads a

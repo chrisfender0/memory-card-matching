@@ -18,6 +18,11 @@
 
         <section class="leaderboard">
           <h2>Leaderboard</h2>
+          <div class="lb-view-toggle">
+            <button id="lb-view-regular" class="lb-view-btn" data-view="regular">Regular</button>
+            <button id="lb-view-powers" class="lb-view-btn" data-view="powers">Special Powers</button>
+          </div>
+          <div id="lb-power-filters" class="lb-power-filters" hidden></div>
           <ol id="leaderboard-list" class="leaderboard-list"></ol>
           <p id="leaderboard-empty" class="empty-state" hidden>No scores yet — be the first!</p>
         </section>
@@ -105,6 +110,9 @@
       <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
       <div class="screen-content">
         <h1 id="result-title" class="logo">You Win!</h1>
+
+        <div id="result-bonus" class="result-bonus" hidden></div>
+        <div id="result-time-bonus" class="result-time-bonus" hidden></div>
 
         <div class="result-stats">
           <div class="result-stat">
